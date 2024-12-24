@@ -1,0 +1,22 @@
+pipeline {
+     agent any
+     stages {
+         stage('Build Dockery Image') {
+            steps {
+               script {
+                    docker.build('myapp:latest')
+               }
+            }
+         }
+
+         stage('Deploy to Producation') {
+            steps {
+               script {
+                   docker.withRegistry('https://mydockerhub', 'dockerhub-credentials') {
+                      docker.image('myapp:latest').push()
+                   }
+               }
+            }
+         }
+     }
+}
