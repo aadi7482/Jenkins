@@ -1,0 +1,48 @@
+pipeline {
+    agent any
+
+    environment {
+        AWS_REGION = 'us-west-2'
+        AWS_CREDENTIALS = 'aws-credentials'  // Define this credential in Jenkins credentials manager
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/your-repo/your-project.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'mvn clean package'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                withCredentials([aws(credentialsId: 'aws-credentials', region: AWS_REGION)]) {
+                    sh 'aws s3 cp target/your-artifact.jar s3://your-bucket/your-artifact.jar'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()  // Clean workspace after build
+        }
+        success {
+            echo 'Build and deployment succeeded!'
+        }
+        failure {
+            echo 'Build failed!'
+        }
+    }
+}
